@@ -27,9 +27,9 @@ class PostController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function home()
+    public function dashboard()
     {
-        return view('/pages.dashboard');
+        return view('/pages.post.dashboard');
     }
 
     /**
@@ -41,13 +41,13 @@ class PostController extends Controller
     //  landing page 
     public function index()
     {    
-        $userId = Auth::user()->id;
+        $userId = auth()->user()->id;
         // $posts = Post::where(['user_id' => $userId])->get();
-        $posts = Post::where(['user_id' => $userId])-> orderBy('id', 'desc')->paginate(4);
+        $posts = Post::where(['user_id' => $userId])
+                    -> orderBy('id', 'desc')
+                    ->paginate(4);
         return view('/pages/post.view', ['posts' => $posts]);
     }
-
-
 
     /**
      * Show the form for creating a new resource.
@@ -56,7 +56,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('pages.post.create');
     }
 
     /**
@@ -67,7 +67,23 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $input = $request->validate([
+            'title' => 'required',
+            'description' => 'required',
+            'status' => 'required',
+        ]);
+
+        $userId = auth()->user()->id;
+        $input = $request->input();
+        $input['user_id'] = $userId;
+        $postStatus = post::create($input);
+        
+        if ($postStatus) {
+            $request->session()->flash('success', 'Post successfully added');
+        } else {
+            $request->session()->flash('error', 'Oops something went wrong, Post not Published');
+        }
+        return redirect('post');
     }
 
     /**
@@ -78,7 +94,11 @@ class PostController extends Controller
      */
     public function show($id)
     {
-        //
+        $post = Post::where(['user_id' => $userId, 'id' => $id])->first();
+        if (!$post) {
+            return redirect('post')->with('error', 'Post not found');
+        }
+        return view('post.detail', ['post' => $post]);
     }
 
     /**
@@ -89,7 +109,13 @@ class PostController extends Controller
      */
     public function edit($id)
     {
-        //
+        $userId = auth()->user()->id;
+        $post = Post::where(['user_id' => $userId, 'id' => $id])->first();
+        if ($post) {
+            return view('pages.post.edit', [ 'post' => $post ]);
+        } else {
+            return redirect('post')->with('error', 'post not found');
+        }
     }
 
     /**
@@ -101,7 +127,20 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $userId = auth()->user()->id;
+        $post = Post::find($id);
+        if (!$post) {
+            return redirect('post')->with('error', 'Post not found.');
+        }
+        $input = $request->input();
+        $input['user_id'] = $userId;
+        $postStatus = $post->update($input);
+        if ($postStatus) {
+            return redirect('post')->with('success', 'Post successfully updated.');
+        } else {
+            return redirect('post')->with('error', 'Oops something went wrong. Post not updated');
+        }
+
     }
 
     /**
@@ -112,6 +151,21 @@ class PostController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $userId = auth()->user()->id;
+        $post = Post::where(['user_id' => $userId, 'id' => $id])->first();
+        $respStatus = $respMsg = '';
+        if (!$post) {
+            $respStatus = 'error';
+            $respMsg = 'Post not found';
+        }
+        $postDelStatus = $post->delete();
+        if ($postDelStatus) {
+            $respStatus = 'success';
+            $respMsg = 'Post deleted successfully';
+        } else {
+            $respStatus = 'error';
+            $respMsg = 'Oops something went wrong. Post not deleted successfully';
+        }
+        return redirect('post')->with($respStatus, $respMsg);
     }
 }

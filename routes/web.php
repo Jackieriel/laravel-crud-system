@@ -18,9 +18,14 @@ Route::get('/', 'PostController@view')->name('view');
 Auth::routes();
 
 Route::group(['middleware' => 'auth'], function () {
+  Route::get('/dashboard', 'PostController@dashboard')->name('dashboard');
   Route::resource('/post', 'PostController');
+  // Route::resource('/post.create', 'PostController@create');
+  // Route::get('/post/{post}', 'PostController@edit');
+  // Route::get('/edit', 'PostController@edit');
+
 });
 
 Auth::routes();
 
-Route::get('/home', 'PostController@home')->name('home');
+// Route::get('/home', 'PostController@home')->name('home');

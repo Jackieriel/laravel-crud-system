@@ -33,7 +33,9 @@ My Post
             <tr>
                 <th>Title</th> 
                 <th>Status</th>           
-                <th>Date</th>
+                <th>Posted Date</th>
+                <th>Updated</th>
+                <th>Action</th>
               </tr>
         </thead>
         <tbody>
@@ -42,16 +44,17 @@ My Post
               <th>{{ $post->title }}</th>
               <td>{{ $post->status }}</td>
               <td>{{ $post->created_at }}</td>
+              <td>{{ $post->updated }}</td>
               <td>
                 <div class="action_btn">
                   <div class="action_btn">
-                    <a href="{{ route('post.update', $post->id)}}" class="btn btn-warning">Edit</a>
+                    <a href="{{ route('post.edit', $post->id)}}" class="btn btn-warning btn-sm my-button">Edit</a>
                   </div>
                   <div class="action_btn margin-left-10">
                     <form action="{{ route('post.destroy', $post->id)}}" method="post">
                       @csrf
                       @method('DELETE')
-                      <button class="btn btn-danger" type="submit">Delete</button>
+                      <button class="btn btn-danger btn-sm" type="submit">Delete</button>
                     </form>
                   </div>
                 </div>
@@ -64,7 +67,10 @@ My Post
           @endforelse
         </tbody>
       </table>
+       {{-- pagination --}}
+       {{ $posts->appends(Request::all())->links() }}
         </div>
     </div>
 </div>
+<x-footer />
 @endsection
